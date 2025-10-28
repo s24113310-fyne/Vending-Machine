@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Elegant Jewelry Vending Machine ✨</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap');
+  body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #5a1a7e;
+    background: linear-gradient(135deg, #f8d7e3, #f9e8ef);
+    overflow: hidden;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image:
+      radial-gradient(2px 2px at 10% 20%, rgba(255 255 255 / 0.8), transparent 60%),
+      radial-gradient(1.5px 1.5px at 25% 40%, rgba(255 255 255 / 0.6), transparent 60%),
+      radial-gradient(2px 2px at 50% 10%, rgba(255 255 255 / 0.7), transparent 60%),
+      radial-gradient(1.8px 1.8px at 70% 80%, rgba(255 255 255 / 0.5), transparent 60%),
+      radial-gradient(1.5px 1.5px at 85% 30%, rgba(255 255 255 / 0.6), transparent 60%);
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    animation: glitterMove 15s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+  @keyframes glitterMove { 0% { background-position: 0 0; } 100% { background-position: 200px 200px; } }
+
+  .container {
+    display: flex;
+    background: #fff0fc;
+    border-radius: 30px;
+    box-shadow: 0 20px 40px rgba(135, 20, 105, 0.3);
+    max-width: 1100px;
+    width: 100%;
+    padding: 40px 50px;
+    color: #5a1a7e;
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 40px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #8e2ad6;
+    text-shadow: 0 3px 10px rgba(142, 42, 214, 0.5);
+    position: relative;
+  }
+
+  h1::after {
+    content: "💎✨";
+    margin-left: 12px;
+    animation: sparkle 2s ease-in-out infinite alternate;
+  }
+  @keyframes sparkle { 0% { opacity: 0.4; transform: scale(1); } 100% { opacity: 1; transform: scale(1.4) rotate(5deg); } }
+
+  .vending-machine { flex: 1; text-align: center; }
+  .items-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 40px; }
+
+  .item-card {
+    background: #fff4fc;
+    border-radius: 20px;
+    padding: 20px 15px 30px;
+    box-shadow: 0 8px 15px rgba(142, 42, 214, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .item-card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 20px 40px rgba(142, 42, 214, 0.5); border: 2px solid #8e2ad6; }
+
+  .item-emoji { font-size: 3rem; margin-bottom: 10px; }
+  .item-name { font-weight: 700; font-size: 1.2rem; color: #6a1b9a; margin-bottom: 10px; }
+  .item-price {
+    font-weight: 800; font-size: 1.2rem;
+    background: linear-gradient(90deg, #d15eff, #8e2ad6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+  }
+  .buy-btn {
+    background: linear-gradient(45deg, #8e2ad6, #5a1a7e);
+    color: white; border: none; border-radius: 18px;
+    padding: 10px 20px; font-weight: 800;
+    box-shadow: 0 6px 15px rgba(142, 42, 214, 0.5);
+    cursor: pointer; transition: transform 0.2s ease;
+  }
+  .buy-btn:hover { transform: scale(1.1); }
+
+  .balance { font-size: 1.8rem; font-weight: 900; color: #7a1fa2; margin-bottom: 10px; }
+  .message { min-height: 32px; font-weight: 700; font-size: 1.2rem; margin-bottom: 25px; color: #aa33cc; }
+
+  .keypad {
+    width: 250px; background: #f5e1f7;
+    border-radius: 30px; box-shadow: 0 15px 40px rgba(135, 20, 105, 0.25);
+    padding: 30px 20px; margin-left: 40px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .insert-title { font-weight: 900; font-size: 1.3rem; margin-bottom: 20px; color: #7a1fa2; }
+  .money-buttons {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 15px; width: 100%;
+  }
+  .money-btn {
+    background: linear-gradient(45deg, #8e2ad6, #5a1a7e);
+    color: white; border: none; border-radius: 20px;
+    font-size: 1.2rem; font-weight: 900; padding: 15px 0;
+    cursor: pointer; box-shadow: 0 8px 18px rgba(142, 42, 214, 0.6);
+    transition: transform 0.2s ease;
+  }
+  .money-btn:hover { transform: scale(1.1); }
+
+  .floating-item {
+    position: absolute;
+    font-size: 2.5rem;
+    animation: floatUp 5s ease-in-out forwards;
+    opacity: 0;
+    z-index: 999;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(-300px) scale(1.5) rotate(360deg); }
+  }
+
+  /* Receipt popup */
+  .receipt {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background: white;
+    border-radius: 20px;
+    padding: 25px 30px;
+    box-shadow: 0 10px 30px rgba(142, 42, 214, 0.3);
+    color: #5a1a7e;
+    font-weight: 600;
+    animation: fadeIn 0.4s ease;
+    z-index: 10000;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="vending-machine">
+      <h1>Jewelry Vending Machine</h1>
+      <div class="items-grid" id="itemsGrid"></div>
+      <div class="balance" id="balanceDisplay">Balance: NTD 0.00</div>
+      <div class="message" id="message"></div>
+    </div>
+
+    <div class="keypad">
+      <div class="insert-title">Insert Money 💰</div>
+      <div class="money-buttons">
+        <button class="money-btn" onclick="insertMoney(10)">NTD 10</button>
+        <button class="money-btn" onclick="insertMoney(50)">NTD 50</button>
+        <button class="money-btn" onclick="insertMoney(100)">NTD 100</button>
+        <button class="money-btn" onclick="insertMoney(500)">NTD 500</button>
+        <button class="money-btn" style="grid-column: span 2;" onclick="insertMoney(1000)">NTD 1000</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sound effects -->
+  <audio id="coinSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_c71de28a1d.mp3"></audio>
+  <audio id="buySound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_5e19e9db5a.mp3"></audio>
+
+<script>
+  const items = [
+    { name: 'Diamond Ring', price: 55, emoji: '💍' },
+    { name: 'Gold Necklace', price: 80, emoji: '📿' },
+    { name: 'Silver Bracelet', price: 45, emoji: '🧿' },
+    { name: 'Pearl Earrings', price: 50, emoji: '👂' },
+    { name: 'Emerald Anklet', price: 60, emoji: '🦶' },
+    { name: 'Belly Accessory', price: 70, emoji: '💫' }
+  ];
+
+  let balance = 0;
+  const balanceDisplay = document.getElementById('balanceDisplay');
+  const message = document.getElementById('message');
+  const itemsGrid = document.getElementById('itemsGrid');
+  const coinSound = document.getElementById('coinSound');
+  const buySound = document.getElementById('buySound');
+
+  function playSound(sound) {
+    sound.currentTime = 0;
+    sound.play();
+  }
+
+  function renderItems() {
+    itemsGrid.innerHTML = '';
+    items.forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = `
+        <div class="item-emoji">${item.emoji}</div>
+        <div class="item-name">${item.name}</div>
+        <div class="item-price">NTD ${item.price.toFixed(2)}</div>
+        <button class="buy-btn" onclick="buyItem(${index})">Buy</button>
+      `;
+      itemsGrid.appendChild(card);
+    });
+  }
+
+  function insertMoney(amount) {
+    playSound(coinSound);
+    balance += amount;
+    updateBalance();
+    showMessage(`Inserted NTD ${amount}! 💰`);
+  }
+
+  function buyItem(index) {
+    const item = items[index];
+    if (balance < item.price) {
+      showMessage('Insufficient balance!');
+      return;
+    }
+    balance -= item.price;
+    updateBalance();
+    playSound(buySound);
+    showMessage(`You bought: ${item.name} 💖`);
+    createFloatingShower(item.emoji);
+
+    setTimeout(() => {
+      const wantsReceipt = confirm('Would you like a receipt? 🧾');
+      if (wantsReceipt) showReceipt(item);
+      else showMessage('Thank you for your purchase! 💕');
+    }, 1500);
+  }
+
+  function updateBalance() {
+    balanceDisplay.textContent = `Balance: NTD ${balance.toFixed(2)}`;
+  }
+
+  function showMessage(msg) {
+    message.textContent = msg;
+    clearTimeout(showMessage.timeout);
+    showMessage.timeout = setTimeout(() => message.textContent = '', 4000);
+  }
+
+  // LOTS of floating emojis (only the one you bought)
+  function createFloatingShower(emoji) {
+    const count = 60 + Math.random() * 40;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'floating-item';
+      el.textContent = emoji;
+      el.style.left = Math.random() * window.innerWidth + 'px';
+      el.style.bottom = Math.random() * 80 + 'px';
+      el.style.fontSize = (2 + Math.random() * 2.5) + 'rem';
+      el.style.animationDuration = (3 + Math.random() * 2) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5500);
+    }
+  }
+
+  // Receipt pop-up
+  function showReceipt(item) {
+    const receipt = document.createElement('div');
+    receipt.className = 'receipt';
+    const now = new Date();
+    receipt.innerHTML = `
+      <strong>🧾 Jewelry Vending Machine</strong><br><br>
+      Item: ${item.name} ${item.emoji}<br>
+      Price: NTD ${item.price.toFixed(2)}<br>
+      Remaining Balance: NTD ${balance.toFixed(2)}<br><br>
+      Time: ${now.toLocaleTimeString()}<br>
+      Date: ${now.toLocaleDateString()}<br><br>
+      💖 Thank you for your purchase!
+    `;
+    document.body.appendChild(receipt);
+    setTimeout(() => receipt.remove(), 8000);
+  }
+
+  renderItems();
+  updateBalance();
+</script>
+</body>
+</html>
