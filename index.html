@@ -105,6 +105,45 @@
     padding: 30px 20px; margin-left: 40px;
     display: flex; flex-direction: column; align-items: center;
   }
+  /* Coins + slot styles */
+  .coins-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .coin {
+    width: 54px; height: 54px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: white; font-weight: 900; cursor: grab; user-select: none;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    border: 3px solid rgba(255,255,255,0.12);
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+  }
+  .coin:active { cursor: grabbing; transform: scale(0.98); }
+  .coin.small { width: 46px; height: 46px; font-size: 0.9rem; }
+
+  .coin.slot-10 { background: linear-gradient(135deg,#ffd46a,#ffb84d); color:#512500 }
+  .coin.slot-50 { background: linear-gradient(135deg,#ffd29a,#ff8c4f); }
+  .coin.slot-100 { background: linear-gradient(135deg,#b6f0ff,#5bd4ff); color:#003b45 }
+  .coin.slot-500 { background: linear-gradient(135deg,#e2c6ff,#c08eff); }
+  .coin.slot-1000 { background: linear-gradient(135deg,#ffd6f0,#ff9adf); }
+
+  .coin-slot {
+    width: 100%; height: 56px; border-radius: 12px; background: linear-gradient(180deg,#f1dff3,#fbeefb);
+    border: 2px dashed rgba(122,31,162,0.18); display:flex; align-items:center; justify-content:center;
+    color:#7a1fa2; font-weight:800; margin-bottom:14px; position: relative; overflow: visible;
+    transition: box-shadow 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+  }
+  .coin-slot::after {
+    content: 'Insert Coin Here'; position:absolute; left:12px; top:8px; font-size:0.8rem; opacity:0.85; font-weight:700;
+  }
+  .coin-slot.active { box-shadow: 0 6px 18px rgba(138, 45, 170, 0.15); transform: translateY(-2px); border-color: rgba(142,42,214,0.45); }
+
+  /* floating clone used for animation */
+  .coin-clone { position: absolute; pointer-events: none; z-index: 20000; border-radius: 50%; display:flex; align-items:center; justify-content:center; }
   .insert-title { font-weight: 900; font-size: 1.3rem; margin-bottom: 20px; color: #7a1fa2; }
   .money-buttons {
     display: grid; grid-template-columns: repeat(2, 1fr);
@@ -162,13 +201,19 @@
 
     <div class="keypad">
       <div class="insert-title">Insert Money 💰</div>
-      <div class="money-buttons">
-        <button class="money-btn" onclick="insertMoney(10)">NTD 10</button>
-        <button class="money-btn" onclick="insertMoney(50)">NTD 50</button>
-        <button class="money-btn" onclick="insertMoney(100)">NTD 100</button>
-        <button class="money-btn" onclick="insertMoney(500)">NTD 500</button>
-        <button class="money-btn" style="grid-column: span 2;" onclick="insertMoney(1000)">NTD 1000</button>
-      </div>
+        <!-- visual coin slot + draggable coins -->
+        <div class="coin-slot" id="coinSlot" aria-label="Coin slot" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"></div>
+
+        <div class="coins-container" id="coinsContainer" aria-hidden="false"></div>
+
+        <div style="width:100%; height:8px"></div>
+        <div class="money-buttons">
+          <button class="money-btn" onclick="insertMoney(10)">NTD 10</button>
+          <button class="money-btn" onclick="insertMoney(50)">NTD 50</button>
+          <button class="money-btn" onclick="insertMoney(100)">NTD 100</button>
+          <button class="money-btn" onclick="insertMoney(500)">NTD 500</button>
+          <button class="money-btn" style="grid-column: span 2;" onclick="insertMoney(1000)">NTD 1000</button>
+        </div>
     </div>
   </div>
 
@@ -193,6 +238,107 @@
   const coinSound = document.getElementById('coinSound');
   const buySound = document.getElementById('buySound');
 
+  // drag-and-drop coin support
+  const coinsContainerEl = document.getElementById('coinsContainer');
+  const coinSlotEl = document.getElementById('coinSlot');
+
+  function createCoinElements() {
+    const denoms = [10,50,100,500,1000];
+    coinsContainerEl.innerHTML = '';
+    denoms.forEach(d => {
+      const c = document.createElement('div');
+      c.className = `coin slot-${d}`;
+      c.draggable = true;
+      c.setAttribute('role','button');
+      c.setAttribute('aria-label', `NTD ${d}`);
+      c.dataset.amount = d;
+      c.textContent = d === 1000 ? '1k' : d;
+      c.addEventListener('dragstart', handleDragStart);
+      c.addEventListener('dragend', handleDragEnd);
+      // also support click to insert (keyboard/touch fallback)
+      c.addEventListener('click', () => {
+        animateCoinInsertAtCenter(c, d);
+        insertMoney(d);
+      });
+      coinsContainerEl.appendChild(c);
+    });
+  }
+
+  function handleDragStart(e) {
+    const amount = e.target.dataset.amount || e.target.getAttribute('data-amount');
+    e.dataTransfer.setData('text/plain', amount);
+    // create a drag image so cursor shows coin
+    const crt = e.target.cloneNode(true);
+    crt.style.width = '54px'; crt.style.height = '54px';
+    crt.style.transform = 'translate(-10px,-10px)';
+    document.body.appendChild(crt);
+    e.dataTransfer.setDragImage(crt, 27, 27);
+    // remove created drag image after a short timeout (some browsers keep it)
+    setTimeout(() => crt.remove(), 0);
+  }
+
+  function handleDragEnd(e) {
+    // nothing for now
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    coinSlotEl.classList.add('active');
+  }
+
+  function handleDragLeave(e) {
+    coinSlotEl.classList.remove('active');
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    coinSlotEl.classList.remove('active');
+    const amount = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (!isNaN(amount) && amount > 0) {
+      // animate a cloned coin from drop point into the slot
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      animateCoinToSlot(clientX, clientY, amount);
+      // delay actual money insertion so animation is noticeable
+      setTimeout(() => insertMoney(amount), 240);
+    }
+  }
+
+  function animateCoinToSlot(startX, startY, amount) {
+    const clone = document.createElement('div');
+    clone.className = 'coin-clone coin slot-' + amount;
+    clone.textContent = amount === 1000 ? '1k' : amount;
+    clone.style.left = (startX - 28) + 'px';
+    clone.style.top = (startY - 28) + 'px';
+    clone.style.width = '54px'; clone.style.height = '54px';
+    clone.style.fontSize = '1rem';
+    clone.style.transition = 'transform 260ms ease, opacity 260ms ease, left 260ms ease, top 260ms ease';
+    document.body.appendChild(clone);
+
+    const slotRect = coinSlotEl.getBoundingClientRect();
+    const targetX = slotRect.left + slotRect.width / 2 - 27;
+    const targetY = slotRect.top + slotRect.height / 2 - 27;
+
+    // force layout then move
+    requestAnimationFrame(() => {
+      clone.style.left = targetX + 'px';
+      clone.style.top = targetY + 'px';
+      clone.style.transform = 'scale(0.6) translateY(6px)';
+      clone.style.opacity = '0.8';
+    });
+
+    setTimeout(() => {
+      clone.style.opacity = '0';
+      setTimeout(() => clone.remove(), 300);
+    }, 300);
+  }
+
+  function animateCoinInsertAtCenter(element, amount) {
+    const rect = element.getBoundingClientRect();
+    animateCoinToSlot(rect.left + rect.width/2, rect.top + rect.height/2, amount);
+  }
+
+
   function playSound(sound) {
     sound.currentTime = 0;
     sound.play();
@@ -212,6 +358,9 @@
       itemsGrid.appendChild(card);
     });
   }
+
+  // initialize coins UI
+  createCoinElements();
 
   function insertMoney(amount) {
     playSound(coinSound);
